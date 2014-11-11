@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.rsoccer" name="r/soccer" version="0.1.0" provider-name="João Sousa">
+<addon id="plugin.video.rsoccer" name="/r/soccer" version="0.1.0" provider-name="João Sousa">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.xbmcswift2" version="2.4.0"/>
@@ -10,7 +10,7 @@
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
     <language></language>
-    <summary>Lists all gfycat videos from r/soccer</summary>
-    <description>Lists all gfycat videos from r/soccer</description>
+    <summary>Lists all gfycat videos from /r/soccer</summary>
+    <description>Lists all gfycat videos from /r/soccer</description>
   </extension>
 </addon>
