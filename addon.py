@@ -1,6 +1,9 @@
 from xbmcswift2 import Plugin
-from resources.lib.reddit import getRedditGfycats
-import xbmcgui
+from resources.lib.reddit import getRedditVideos
+try:
+    import xbmcgui
+except ImportError:
+    from xbmcswift2 import xbmc, xbmcgui
 
 plugin = Plugin()
 
@@ -10,7 +13,7 @@ def error(msg):
 
 @plugin.route('/')
 def index():
-    res = getRedditGfycats('soccer')
+    res = getRedditVideos('soccer')
     err = res.get('error')
     
     if not err:

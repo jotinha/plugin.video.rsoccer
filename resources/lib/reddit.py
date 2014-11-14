@@ -6,9 +6,10 @@ import re
 HEADERS = {'User-agent':'plugin.video.rsoccer'}
 
 
-def getGfycatVideo(url,filetype='mp4'):
+def getVideoGfycat(item,filetype='mp4'):
     if filetype not in ('mp4','webm','gif'):
         return
+    url = item.get('url')
     m = re.match('^(https?:\/\/)?(wwww\.)?gfycat\.com\/([\w-]+)', url)
     if m and m.group(3):
         r = requests.get('http://gfycat.com/cajax/get/' + m.group(3), headers=HEADERS)
@@ -16,8 +17,26 @@ def getGfycatVideo(url,filetype='mp4'):
             d = r.json()['gfyItem']
             return d.get(filetype + 'Url'),d.get(filetype + 'Size')
 
+def getVideoYoutube(item):
+    def url2plugin(url):
+        video_id = re.search('[?&]v=(\w+)', url)
+        if video_id and video_id.group(1):
+            return 'plugin://plugin.video.youtube/?action=play_video&videoid=' + video_id.group(1)
+    
+    url = item.get('url')
+    if url:
+        return url2plugin(url),None
 
-def getRedditGfycats(subreddit,page='hot'):
+def getVideo(item):
+    media = item.get('secure_media') or item.get('media')
+    domain = item.get('domain')
+    if (media and media.get('type') == 'youtube.com') or domain == 'youtube.com':
+        return getVideoYoutube(item)
+    
+    elif domain == 'gfycat.com':
+        return getVideoGfycat(item)
+
+def getRedditVideos(subreddit,page='hot'):
     res = []
     r = requests.get('http://www.reddit.com/r/' + subreddit + '/' + page + '/.json',headers=HEADERS)
     
@@ -25,7 +44,7 @@ def getRedditGfycats(subreddit,page='hot'):
         for c in r.json()['data']['children']:
             cd = c['data']
 
-            video_and_size = getGfycatVideo(cd['url'])
+            video_and_size = getVideo(cd)
             if video_and_size:
                
                 res.append({
