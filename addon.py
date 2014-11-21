@@ -13,7 +13,7 @@ def error(msg):
 
 @plugin.route('/')
 def index():
-    res = getRedditVideos('soccer')
+    res = getRedditVideos('soccer',after = plugin.request.args.get('after'), before = plugin.request.args.get('before'))
     err = res.get('error')
     
     if not err:
@@ -26,7 +26,13 @@ def index():
                 'is_playable': True
             }
             items.append(item)
-#        plugin.add_to_playlist(items,'video')
+            
+        if res.get('next'):
+            items.append({
+                    'label': 'Next >>',
+                    'path': plugin.url_for('index',after=res.get('next'))
+                })
+                
         return items
     
     else:

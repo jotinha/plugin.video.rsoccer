@@ -19,7 +19,7 @@ def getVideoGfycat(item,filetype='mp4'):
 
 def getVideoYoutube(item):
     def url2plugin(url):
-        video_id = re.search('[?&]v=(\w+)', url)
+        video_id = re.search('[?&]v=([\-\w]+)', url)
         if video_id and video_id.group(1):
             return 'plugin://plugin.video.youtube/?action=play_video&videoid=' + video_id.group(1)
     
@@ -36,14 +36,21 @@ def getVideo(item):
     elif domain == 'gfycat.com':
         return getVideoGfycat(item)
 
-def getRedditVideos(subreddit,page='hot'):
+def getRedditVideos(subreddit,page='hot',after=None,before=None):
     res = []
-    r = requests.get('http://www.reddit.com/r/' + subreddit + '/' + page + '/.json',headers=HEADERS)
+    params = {
+        'limit': 100,
+        'after': after,
+        'before': before,
+    }
+    r = requests.get('http://www.reddit.com/r/' + subreddit + '/' + page + '/.json',params=params,headers=HEADERS)
     
     if r.status_code == 200:
-        for c in r.json()['data']['children']:
+        data = r.json()['data']
+        for c in data['children']:
+            
             cd = c['data']
-
+            
             video_and_size = getVideo(cd)
             if video_and_size:
                
@@ -61,4 +68,4 @@ def getRedditVideos(subreddit,page='hot'):
     else:
         return {'error': {'type':'http','code':r.status_code}}
     
-    return {'items':res}
+    return {'items':res,'next': data['after']}
