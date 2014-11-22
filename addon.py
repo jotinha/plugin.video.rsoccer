@@ -24,6 +24,7 @@ def index():
             item = {
                 'label': '%(title)s (%(ups)s)' % r,
                 'path': r.get('video'),
+                'thumbnail': r.get('thumbnail'),
                 'is_playable': True
             }
             items.append(item)

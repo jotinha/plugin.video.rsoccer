@@ -3,7 +3,10 @@
 import requests
 from requests.utils import unquote
 import re
-from .common import *
+try:
+    from .common import *
+except ValueError:
+    from common import *
 
 def getVideoVine(item):
     #first attempt to get mp4 directly from embed content
@@ -16,18 +19,19 @@ def getVideoVine(item):
         m = re.search('[?&]src=(https?.*?vine\.co.*?)&amp;',iframe)
         if m and m.group(1):
             url = unquote(m.group(1))
-            return url
+            return url,None
 
 def getVideoGfycat(item,filetype='mp4'):
     if filetype not in ('mp4','webm','gif'):
         return
     url = item.get('url')
     m = re.match('^(https?:\/\/)?(wwww\.)?gfycat\.com\/([\w-]+)', url)
-    if m and m.group(3):
-        r = GET('http://gfycat.com/cajax/get/' + m.group(3))
-        if r.status_code == 200:
-            d = r.json()['gfyItem']
-            return d.get(filetype + 'Url')#,d.get(filetype + 'Size')
+    gfyid = m and m.group(3)
+    if gfyid:
+        r = GET('http://gfycat.com/cajax/get/' + gfyid)
+        url = r.status_code == 200 and r.json()['gfyItem'].get(filetype + 'Url')
+        thumbnail = 'https://thumbs.gfycat.com/' + gfyid + '-thumb100.jpg'
+        return url, {'thumbnail':thumbnail}
 
 def getVideoYoutube(item):
     def getVideoId(url):
@@ -41,9 +45,18 @@ def getVideoYoutube(item):
         if video_id:
             return 'plugin://plugin.video.youtube/?action=play_video&videoid=' + video_id
     
-    url = item.get('url')
+    url = item.get('url')   
+
     if url:
-        return url2plugin(url)
+        return url2plugin(url), None
+
+
+def getEmbedThumbnail(item):
+    thumbnail = sget(item,'secure_media/oembed/thumbnail_url') or \
+                sget(item,'media/oembed/thumbnail_url')
+    
+    if thumbnail:
+        return html_unescape(thumbnail)
 
 def getVideo(item):
     media = item.get('secure_media') or item.get('media')
@@ -58,13 +71,13 @@ def getVideo(item):
         return getVideoVine(item)
     
     else:
-        return 'novideo'
+        return 'novideo',None
     
 
 def getRedditVideos(subreddit,page='hot',after=None,before=None):
     res = []
     params = {
-        'limit': 100,
+        'limit': 30,
         'after': after,
         'before': before,
     }
@@ -76,23 +89,33 @@ def getRedditVideos(subreddit,page='hot',after=None,before=None):
             
             cd = c['data']
             
-            vid = getVideo(cd)
+            vid,more = getVideo(cd)
             if vid != 'novideo':
                 if vid:
-                    res.append({
-                        'title': cd['title'],
-                        'author': cd['author'],
-                        'ups' : cd['ups'],
-                        'video': vid,
-                        'date': cd['created_utc']
-                        
-                    })                
+                    item = {
+                            'title': cd['title'],
+                            'author': cd['author'],
+                            'ups' : cd['ups'],
+                            'date': cd['created_utc'],
+                            'video': vid,
+                        }
+                    if more:
+                        item.update(more)
+                    
+                    if not item.get('thumbnail'):
+                        thumbnail = getEmbedThumbnail(cd)
+                        if thumbnail:
+                            item['thumbnail'] = thumbnail
+                    
+                    res.append(item)
+                
                 else:
                     print "ERROR: failed to parse video item"
-                    display(cd)
+                    print cd
                 
-#                print '%(title)s - %(author)s (%(ups)s) - %(video)s' % res[-1]
     else:
         return {'error': {'type':'http','code':r.status_code}}
     
     return {'items':res,'next': data['after']}
+
+#r = getRedditVideos('soccer')
