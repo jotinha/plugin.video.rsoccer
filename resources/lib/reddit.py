@@ -3,19 +3,7 @@
 import requests
 from requests.utils import unquote
 import re
-
-HEADERS = {'User-agent':'plugin.video.rsoccer'}
-
-def sget(item,key):
-    keys = key.split('/')
-    try:
-        for k in keys:
-            if item and k:
-                item = item[k]
-        return item
-    except KeyError:
-        return None
-    
+from .common import *
 
 def getVideoVine(item):
     #first attempt to get mp4 directly from embed content
@@ -36,7 +24,7 @@ def getVideoGfycat(item,filetype='mp4'):
     url = item.get('url')
     m = re.match('^(https?:\/\/)?(wwww\.)?gfycat\.com\/([\w-]+)', url)
     if m and m.group(3):
-        r = requests.get('http://gfycat.com/cajax/get/' + m.group(3), headers=HEADERS)
+        r = GET('http://gfycat.com/cajax/get/' + m.group(3))
         if r.status_code == 200:
             d = r.json()['gfyItem']
             return d.get(filetype + 'Url')#,d.get(filetype + 'Size')
@@ -80,7 +68,7 @@ def getRedditVideos(subreddit,page='hot',after=None,before=None):
         'after': after,
         'before': before,
     }
-    r = requests.get('http://www.reddit.com/r/' + subreddit + '/' + page + '/.json',params=params,headers=HEADERS)
+    r = GET('http://www.reddit.com/r/' + subreddit + '/' + page + '/.json',params=params)
     
     if r.status_code == 200:
         data = r.json()['data']

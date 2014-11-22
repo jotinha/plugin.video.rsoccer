@@ -1,5 +1,6 @@
 from xbmcswift2 import Plugin
 from resources.lib.reddit import getRedditVideos
+from resources.lib.common import GET
 try:
     import xbmcgui
 except ImportError:
@@ -42,7 +43,5 @@ def index():
             error('Unknown')
         return
             
-    
-
 if __name__ == '__main__':
     plugin.run()
