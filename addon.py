@@ -1,6 +1,7 @@
 from xbmcswift2 import Plugin
 from resources.lib.reddit import getRedditVideos
 from resources.lib.common import GET
+import datetime
 try:
     import xbmcgui
 except ImportError:
@@ -21,12 +22,27 @@ def index():
         items = []    
 
         for r in res.get('items') or []:
+            
+            date = r.get('date')
+            if date:
+                date = datetime.datetime.fromtimestamp(date)
+                r['date_in_plot'] = date.strftime('%Y/%m/%d, %H:%M')
+               
             item = {
                 'label': '%(title)s (%(ups)s)' % r,
                 'path': r.get('video'),
                 'thumbnail': r.get('thumbnail'),
-                'is_playable': True
+                'is_playable': True,
+                'info': {
+                    'title': r.get('title'),
+                    'artist': [r.get('author')],
+                    'plot': '%(title)s\nPosted by u/%(author)s on %(date_in_plot)s\n%(ups)s upvotes' % r,
+                    'date': date.strftime('%d.%m.%Y'), # must be this format
+                    'size': r.get('size'), #size, in bytes
+                },
+                'info_type': 'video',
             }
+           
             items.append(item)
             
         if res.get('next'):
