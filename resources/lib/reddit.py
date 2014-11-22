@@ -84,7 +84,7 @@ def getVideo(item):
 def getRedditVideos(subreddit,page='hot',after=None,before=None):
     res = []
     params = {
-        'limit': 30,
+        'limit': 50,
         'after': after,
         'before': before,
     }
