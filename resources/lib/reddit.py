@@ -57,6 +57,23 @@ def getVideoYoutube(item):
     if url:
         return url2plugin(url), None
 
+def getVideoMediacrush(item,filetype='mp4'):
+    #work on the assumption that we can get direct link to video file by
+    #appending mp4/webm/ogv (and jpg for still) to the url
+    #the proper way would be to use the api 
+    #(we can even merge multiple requests in one call)
+    
+    if filetype not in ('mp4','webm','ogv'):
+        return
+    
+    def sanitizeUrl(url):
+        m = re.match('^https?:\/\/mediacru\.sh\/([\-\w]+)',url or '')
+        if m and m.group(1).lower() != 'api':
+            return m.group(0)
+
+    url = sanitizeUrl(item.get('url'))
+    if url:
+        return url + '.' + filetype,{'thumbnail':url+'.jpg'}
 
 def getEmbedThumbnail(item):
     thumbnail = sget(item,'secure_media/oembed/thumbnail_url') or \
@@ -76,6 +93,9 @@ def getVideo(item):
 
     elif domain == 'vine.co':
         return getVideoVine(item)
+
+    elif domain == 'mediacru.sh':
+        return getVideoMediacrush(item)    
     
     else:
         return 'novideo'
@@ -138,4 +158,4 @@ def getRedditVideos(subreddit,page='hot',after=None,before=None):
     
     return {'items':res,'next': data['after']}
 
-r = getRedditVideos('soccer')
+#r = getRedditVideos('soccer')

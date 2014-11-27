@@ -2,6 +2,7 @@ A simple XBMC plugin to list and play all videos from [/r/soccer](http://www.red
 
 Currently supports videos from:
 * gfycat.com
+* mediacru.sh
 * youtube
 * vine
 
